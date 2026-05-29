@@ -14,7 +14,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 SERVICE_ROOT = Path(__file__).resolve().parent
-TRIPOSR = SERVICE_ROOT / "TripoSR"
+TRIPOSR = SERVICE_ROOT / "TripoSR_model"
 CONDA_ENV = "triposr"
 
 
@@ -96,6 +96,8 @@ def generate_glb(input_image: str, asset_name: str | None = None) -> str:
             str(input_path),
             "--output-dir",
             str(out_dir),
+            "--model-save-format",
+            "glb",
         ]
         logger.info("Running TripoSR: %s", " ".join(cmd))
         logger.info("cwd: %s", TRIPOSR)
