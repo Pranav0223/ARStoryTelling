@@ -1,3 +1,24 @@
+'''
+we have different services in the services/
+read claude.md for better understanding.
+
+first step:
+remove the exisiting html code and use this pipeline, 
+allow me to upload an image from the frontend and send that to /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/json_extraction/pipeline.py
+get the results
+  1. graph1
+  2. graph2
+  3. graph3
+
+
+send the img prompt to the img_gen/img_inference.py check that and find the function, this returns an image 
+send that image to the 2d_to_2d/generate_glb.py (find the fucntion) this returns a .glb file 
+then use that .glb to rig which is in the rigging folder
+and then animate which is in the kimodo_motion -> take prompt from the 
+and show the output in the web page
+
+'''
+
 import io
 import os
 import logging
