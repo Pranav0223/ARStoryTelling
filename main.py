@@ -40,6 +40,12 @@ app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32 MB
 PIPELINE_OUTPUT_DIR = Path(__file__).parent / "pipeline_outputs"
 PIPELINE_OUTPUT_DIR.mkdir(exist_ok=True)
 
+CACHE_IMAGES_DIR = PIPELINE_OUTPUT_DIR / "images"
+CACHE_GLB_DIR = PIPELINE_OUTPUT_DIR / "glb"
+CACHE_ANIMATED_DIR = PIPELINE_OUTPUT_DIR / "animated_glb"
+for _d in [CACHE_IMAGES_DIR, CACHE_GLB_DIR, CACHE_ANIMATED_DIR]:
+    _d.mkdir(exist_ok=True)
+
 # session_id -> {"dir": str, "results": {char_id: animated_glb_path}}
 SESSIONS: dict = {}
 
@@ -353,7 +359,8 @@ _HTML = """<!DOCTYPE html>
     card.innerHTML =
       '<div class="model-card-hdr"><span>' + ev.char_id + '</span></div>' +
       '<model-viewer src="' + ev.url + '" autoplay animation-name="NPZ_Animation" ' +
-      'camera-controls shadow-intensity="1" alt="Animated ' + ev.char_id + '" ar>' +
+      'camera-controls shadow-intensity="1" orientation="0 180deg 0" ' +
+      'camera-orbit="0deg 75deg auto" alt="Animated ' + ev.char_id + '" ar>' +
       '</model-viewer>' +
       '<div class="model-card-ftr">' +
       '<a class="btn-dl" href="' + ev.url + '" download="' + ev.char_id + '_animated.glb">Download GLB</a>' +
@@ -574,11 +581,21 @@ def run():
             def img_gen_worker():
                 for char in characters:
                     cid = char["id"]
+                    cached_img = CACHE_IMAGES_DIR / f"{cid}.png"
+
+                    if cached_img.exists():
+                        logger.info("Cache hit image for %s: %s", cid, cached_img)
+                        emit({"type": "char", "char_id": cid, "stage": "img_gen", "status": "done"})
+                        img_q.put((char, str(cached_img), None))
+                        continue
+
                     prompt = char.get("prompt", "")
                     emit({"type": "char", "char_id": cid, "stage": "img_gen", "status": "start"})
                     try:
                         out_img = str(session_dir / f"{cid}_img.png")
                         img_path_out = generate_character_image(prompt, output_path=out_img)
+                        shutil.copy(img_path_out, cached_img)
+                        logger.info("Cached image: %s", cached_img)
                         emit({"type": "char", "char_id": cid, "stage": "img_gen", "status": "done"})
                         img_q.put((char, img_path_out, None))
                     except Exception as e:
@@ -604,17 +621,38 @@ def run():
 
                 # Use for/break pattern so a stage failure skips to next character
                 for _ in [None]:
-                    # 3D generation (TripoSR)
-                    emit({"type": "char", "char_id": cid, "stage": "3d", "status": "start"})
-                    glb_path = None
-                    try:
-                        glb_path = generate_glb(img_path_out, asset_name=cid)
+                    cached_glb = CACHE_GLB_DIR / f"{cid}.glb"
+                    cached_anim = CACHE_ANIMATED_DIR / f"{cid}.glb"
+
+                    # Full cache hit — skip all stages and serve directly
+                    if cached_anim.exists():
+                        logger.info("Full cache hit for %s — serving animated GLB", cid)
                         emit({"type": "char", "char_id": cid, "stage": "3d", "status": "done"})
-                    except Exception as e:
-                        logger.exception("3D gen failed for %s", cid)
-                        emit({"type": "char", "char_id": cid, "stage": "3d",
-                              "status": "error", "message": str(e)})
+                        emit({"type": "char", "char_id": cid, "stage": "rig", "status": "done"})
+                        emit({"type": "char", "char_id": cid, "stage": "anim", "status": "done"})
+                        SESSIONS[session_id]["results"][cid] = str(cached_anim)
+                        emit({"type": "result", "char_id": cid,
+                              "url": f"/cache/animated_glb/{cid}.glb"})
                         break
+
+                    # 3D generation (TripoSR) — check GLB cache
+                    glb_path = None
+                    if cached_glb.exists():
+                        logger.info("Cache hit GLB for %s: %s", cid, cached_glb)
+                        glb_path = str(cached_glb)
+                        emit({"type": "char", "char_id": cid, "stage": "3d", "status": "done"})
+                    else:
+                        emit({"type": "char", "char_id": cid, "stage": "3d", "status": "start"})
+                        try:
+                            glb_path = generate_glb(img_path_out, asset_name=cid)
+                            shutil.copy(glb_path, cached_glb)
+                            logger.info("Cached GLB: %s", cached_glb)
+                            emit({"type": "char", "char_id": cid, "stage": "3d", "status": "done"})
+                        except Exception as e:
+                            logger.exception("3D gen failed for %s", cid)
+                            emit({"type": "char", "char_id": cid, "stage": "3d",
+                                  "status": "error", "message": str(e)})
+                            break
 
                     # Rigging (RigAnything)
                     emit({"type": "char", "char_id": cid, "stage": "rig", "status": "start"})
@@ -637,13 +675,14 @@ def run():
 
                         npz_path = generate_motion(action, duration=duration)
 
-                        animated_glb = str(session_dir / f"{cid}_animated.glb")
+                        animated_glb = str(CACHE_ANIMATED_DIR / f"{cid}.glb")
                         blend_animation(rigged_glb, npz_path, animated_glb, fps=30)
 
+                        logger.info("Cached animated GLB: %s", animated_glb)
                         SESSIONS[session_id]["results"][cid] = animated_glb
                         emit({"type": "char", "char_id": cid, "stage": "anim", "status": "done"})
                         emit({"type": "result", "char_id": cid,
-                              "url": f"/download/{session_id}/{cid}_animated.glb"})
+                              "url": f"/cache/animated_glb/{cid}.glb"})
                     except Exception as e:
                         logger.exception("Animation failed for %s", cid)
                         emit({"type": "char", "char_id": cid, "stage": "anim",
@@ -702,6 +741,44 @@ def download_file(session_id: str, filename: str):
         return jsonify({"error": "File not found"}), 404
 
     logger.info("Serving %s | session=%s", filename, session_id)
+    return send_file(
+        str(filepath),
+        mimetype="application/octet-stream",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.get("/cache/<folder>/<filename>")
+def serve_cache_file(folder: str, filename: str):
+    """
+    Serve a file from the pipeline cache directories.
+
+    Path parameters:
+        folder:   One of "images", "glb", "animated_glb"
+        filename: Filename within the folder
+
+    Returns:
+        200 application/octet-stream — file contents
+        400 JSON — invalid folder or path traversal
+        404 JSON — file not found
+    """
+    if folder not in {"images", "glb", "animated_glb"}:
+        return jsonify({"error": "Invalid folder"}), 400
+
+    cache_dir = PIPELINE_OUTPUT_DIR / folder
+    filepath = cache_dir / filename
+
+    try:
+        filepath.resolve().relative_to(cache_dir.resolve())
+    except ValueError:
+        logger.error("Directory traversal attempt: folder=%s file=%s", folder, filename)
+        return jsonify({"error": "Invalid path"}), 400
+
+    if not filepath.exists() or not filepath.is_file():
+        return jsonify({"error": "File not found"}), 404
+
+    logger.info("Serving cache %s/%s", folder, filename)
     return send_file(
         str(filepath),
         mimetype="application/octet-stream",
