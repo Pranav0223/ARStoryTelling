@@ -12,6 +12,7 @@ from flask import (
     Flask, Response, jsonify, render_template_string,
     request, send_file, stream_with_context,
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from services.rigging.rigging_inference import rig_3d_model
 from services.kimodo_motion.motion_inference import generate_motion
@@ -35,7 +36,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024  # 32 MB
+
+
+@app.after_request
+def add_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
+@app.route("/", methods=["OPTIONS"])
+@app.route("/run", methods=["OPTIONS"])
+@app.route("/cache/<path:p>", methods=["OPTIONS"])
+def options_preflight(**_):
+    return Response(status=204, headers={
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+    })
 
 PIPELINE_OUTPUT_DIR = Path(__file__).parent / "pipeline_outputs"
 PIPELINE_OUTPUT_DIR.mkdir(exist_ok=True)
@@ -781,10 +802,134 @@ def serve_cache_file(folder: str, filename: str):
     logger.info("Serving cache %s/%s", folder, filename)
     return send_file(
         str(filepath),
-        mimetype="application/octet-stream",
-        as_attachment=True,
+        mimetype="model/gltf-binary",
+        as_attachment=False,
         download_name=filename,
     )
+
+
+@app.post("/animate")
+def animate():
+    """
+    Synchronous pipeline endpoint for WebAR clients.
+
+    Accepts a scripture image, runs the full pipeline (extraction → image gen →
+    3D → rigging → animation), and returns a JSON array of animated GLB URLs.
+
+    Form field:
+        image (file): input .jpg/.jpeg/.png image
+
+    Returns:
+        200 application/json — [{"url": "https://host/cache/animated_glb/{id}.glb", "char_id": "..."}, ...]
+        400 JSON — missing image field
+        422 JSON — no characters found
+        500 JSON — pipeline error
+    """
+    logger.info("POST /animate from %s", request.remote_addr)
+
+    if "image" not in request.files:
+        return jsonify({"error": "Missing 'image' file field."}), 400
+
+    image_file = request.files["image"]
+    session_id = str(uuid.uuid4())
+    session_dir = PIPELINE_OUTPUT_DIR / session_id
+    session_dir.mkdir(parents=True, exist_ok=True)
+
+    ext = Path(image_file.filename).suffix.lower() or ".jpg"
+    image_path = session_dir / f"input{ext}"
+    image_file.save(str(image_path))
+    logger.info("Saved input for /animate: %s", image_path)
+
+    # Stage 1: extraction
+    try:
+        result = extract_story_graphs(str(image_path))
+    except Exception as e:
+        logger.exception("Extraction failed in /animate")
+        return jsonify({"error": f"Extraction failed: {e}"}), 500
+
+    graph1 = result["graph1"]
+    graph2 = result.get("graph2", {})
+    characters = graph1.get("characters", [])
+
+    if not characters:
+        return jsonify({"error": "No characters found in the image."}), 422
+
+    anim_lookup: dict = {}
+    for anim in graph2.get("animations", []):
+        cid = anim.get("character_id", "")
+        if cid and cid not in anim_lookup:
+            anim_lookup[cid] = anim
+
+    base_url = request.host_url.rstrip("/")
+    glb_results = []
+
+    for char in characters:
+        cid = char["id"]
+        logger.info("Processing character: %s", cid)
+
+        # Full animation cache hit — skip all stages
+        cached_anim = CACHE_ANIMATED_DIR / f"{cid}.glb"
+        if cached_anim.exists():
+            logger.info("Cache hit animated GLB for %s", cid)
+            glb_results.append({"url": f"{base_url}/cache/animated_glb/{cid}.glb", "char_id": cid})
+            continue
+
+        # Image generation
+        cached_img = CACHE_IMAGES_DIR / f"{cid}.png"
+        if cached_img.exists():
+            img_path = str(cached_img)
+            logger.info("Cache hit image for %s", cid)
+        else:
+            prompt = char.get("prompt", "")
+            try:
+                out_img = str(session_dir / f"{cid}_img.png")
+                img_path = generate_character_image(prompt, output_path=out_img)
+                shutil.copy(img_path, cached_img)
+            except Exception as e:
+                logger.exception("Image gen failed for %s", cid)
+                continue
+
+        # 3D generation
+        cached_glb = CACHE_GLB_DIR / f"{cid}.glb"
+        if cached_glb.exists():
+            glb_path = str(cached_glb)
+            logger.info("Cache hit GLB for %s", cid)
+        else:
+            try:
+                glb_path = generate_glb(img_path, asset_name=cid)
+                shutil.copy(glb_path, cached_glb)
+            except Exception as e:
+                logger.exception("3D gen failed for %s", cid)
+                continue
+
+        # Rigging
+        try:
+            rigged_glb = rig_3d_model(glb_path)
+        except Exception as e:
+            logger.exception("Rigging failed for %s", cid)
+            continue
+
+        # Animation
+        try:
+            anim_data = anim_lookup.get(cid)
+            action = anim_data["action"] if anim_data else "a person stands in a neutral T-pose"
+            duration = float(anim_data.get("duration_seconds", 5.0)) if anim_data else 5.0
+            npz_path = generate_motion(action, duration=duration)
+            animated_glb = str(CACHE_ANIMATED_DIR / f"{cid}.glb")
+            blend_animation(rigged_glb, npz_path, animated_glb, fps=30)
+            glb_results.append({"url": f"{base_url}/cache/animated_glb/{cid}.glb", "char_id": cid})
+            logger.info("Animated GLB ready for %s", cid)
+        except Exception as e:
+            logger.exception("Animation failed for %s", cid)
+            continue
+
+    shutil.rmtree(session_dir, ignore_errors=True)
+
+    if not glb_results:
+        return jsonify({"error": "Pipeline completed but produced no animated GLBs."}), 500
+
+    logger.info("POST /animate complete — %d GLB(s) | session=%s", len(glb_results), session_id)
+    return jsonify(glb_results)
 
 
 if __name__ == "__main__":
