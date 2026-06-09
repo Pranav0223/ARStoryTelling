@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AR Storytelling</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      background: #0d1117;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 28px;
+      text-align: center;
+    }
+    .icon {
+      font-size: 4rem;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 24px rgba(99,102,241,0.4));
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+    .subtitle {
+      color: #64748b;
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 320px;
+      margin-bottom: 48px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 16px 44px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { background: #4338ca; transform: scale(0.97); }
+    .reqs {
+      margin-top: 32px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .req-badge {
+      padding: 4px 12px;
+      background: #161b22;
+      border: 1px solid #21262d;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #484f58;
+    }
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="icon">📖</div>
+  <h1>AR Storytelling</h1>
+  <p class="subtitle">
+    Scan a Hindu scripture page and watch the characters come alive in augmented reality.
+  </p>
+  <a class="btn" href="./capture.html">Begin AR Experience</a>
+  <div class="reqs">
+    <span class="req-badge">Android</span>
+    <span class="req-badge">Chrome</span>
+    <span class="req-badge">ARCore</span>
+  </div>
+</div>
+</body>
+</html>
