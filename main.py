@@ -410,54 +410,7 @@ _HTML = """<!DOCTYPE html>
   function setTime(id, txt) {
     const el = document.getElementById('time-' + id);
     if (el) el.textContent = txt;
-  }2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction]   "animations_generated": 4,
-2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction]   "scenes_composed": 1
-2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction] }
-2026-05-29 16:36:49,501 [INFO] services.json_extraction.extraction_inference - Extraction complete | story=Vamana Charitam  chars=2  anims=4
-2026-05-29 16:36:49,501 [INFO] __main__ - Extraction done: 2 character(s)
-2026-05-29 16:36:49,502 [INFO] services.img_gen.img_inference - generate_character_image | prompt='Full body T-pose, front-facing, dark noble complexion, tall strong noble king, royal Asura crown - g'
-2026-05-29 16:36:49,502 [INFO] services.img_gen.img_inference - Fetching image from Pollinations.ai
-2026-05-29 16:36:50,605 [INFO] services.img_gen.img_inference - Image saved: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png
-2026-05-29 16:36:50,606 [INFO] services.img_gen.img_inference - generate_character_image | prompt="Full body T-pose, front-facing, fair elderly complexion, old thin sage, none - sage's matted hair, w"
-2026-05-29 16:36:50,606 [INFO] services.img_gen.img_inference - Fetching image from Pollinations.ai
-2026-05-29 16:36:50,608 [INFO] generate_glb - generate_glb | input=/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png asset_name=bali_chakravarti
-2026-05-29 16:36:50,608 [INFO] generate_glb - Job dir: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/bali_chakravarti_1780052810
-2026-05-29 16:36:50,609 [INFO] generate_glb - Running TripoSR: python /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/run.py /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png --output-dir /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/bali_chakravarti_1780052810
-2026-05-29 16:36:50,609 [INFO] generate_glb - cwd: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model
-2026-05-29 16:36:51,182 [INFO] generate_glb - Subprocess python: /home/ms_upendra/miniconda3/envs/triposr/bin/python
-2026-05-29 16:36:51,540 [INFO] services.img_gen.img_inference - Image saved: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:43,558 - INFO - Initializing model ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/miniconda3/envs/triposr/lib/python3.12/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   _torch_pytree._register_pytree_node(
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/miniconda3/envs/triposr/lib/python3.12/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   _torch_pytree._register_pytree_node(
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/tsr/system.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   ckpt = torch.load(weight_path, map_location="cpu")
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:51,168 - INFO - Initializing model finished in 7610.28ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:51,169 - INFO - Processing images ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Processing images finished in 991.52ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Running image 1/1 ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Running model ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,619 - INFO - Running model finished in 458.21ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,619 - INFO - Extracting mesh ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,003 - INFO - Extracting mesh finished in 1384.77ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,004 - INFO - Exporting mesh ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,144 - INFO - Exporting mesh finished in 140.33ms.
-2026-05-29 16:37:55,476 [ERROR] __main__ - 3D gen failed for bali_chakravarti
-Traceback (most recent call last):
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/main.py", line 564, in pipeline
-    glb_path = generate_glb(img_path_out, asset_name=cid)
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/generate_glb.py", line 130, in generate_glb
-    convert_obj_to_glb(objs[0], final_glb)
-    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/generate_glb.py", line 47, in convert_obj_to_glb
-    import trimesh
-ModuleNotFoundError: No module named 'trimesh'
-2026-05-29 16:37:55,478 [INFO] generate_glb - generate_glb | input=/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png asset_name=shukracharya
-2026-05-29 16:37:55,479 [INFO] generate_glb - Job dir: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/shukracharya_1780052875
-2026-05-29 16:37:55,479 [INFO] generate_glb - Running TripoSR: python /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/run.py /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png --output-dir /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/shukracharya_1780052875
-2026-05-29 16:37:55,479 [INFO] generate_glb - cwd: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model
-2026-05-29 16:37:56,051 [INFO] generate_glb - Subprocess python: /home/ms_upendra/miniconda3/envs/triposr/bin/python
+  }
   function elapsed(key) {
     return timers[key] ? ((Date.now() - timers[key]) / 1000).toFixed(1) + 's' : '';
   }

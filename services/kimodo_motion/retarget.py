@@ -26,9 +26,12 @@ Usage:
 
 import argparse
 import base64
+import logging
 import struct
 import sys
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 try:
     from pygltflib import (
