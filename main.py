@@ -9,8 +9,8 @@ import uuid
 from pathlib import Path
 
 from flask import (
-    Flask, Response, jsonify, render_template_string,
-    request, send_file, stream_with_context,
+    Flask, Response, jsonify, redirect, render_template_string,
+    request, send_file, send_from_directory, stream_with_context,
 )
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -60,6 +60,8 @@ def options_preflight(**_):
 
 PIPELINE_OUTPUT_DIR = Path(__file__).parent / "pipeline_outputs"
 PIPELINE_OUTPUT_DIR.mkdir(exist_ok=True)
+
+FRONTEND_AR_DIR = Path(__file__).parent / "frontend_ar"
 
 CACHE_IMAGES_DIR = PIPELINE_OUTPUT_DIR / "images"
 CACHE_GLB_DIR = PIPELINE_OUTPUT_DIR / "glb"
@@ -410,54 +412,7 @@ _HTML = """<!DOCTYPE html>
   function setTime(id, txt) {
     const el = document.getElementById('time-' + id);
     if (el) el.textContent = txt;
-  }2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction]   "animations_generated": 4,
-2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction]   "scenes_composed": 1
-2026-05-29 16:36:49,500 [INFO] services.json_extraction.extraction_inference - [extraction] }
-2026-05-29 16:36:49,501 [INFO] services.json_extraction.extraction_inference - Extraction complete | story=Vamana Charitam  chars=2  anims=4
-2026-05-29 16:36:49,501 [INFO] __main__ - Extraction done: 2 character(s)
-2026-05-29 16:36:49,502 [INFO] services.img_gen.img_inference - generate_character_image | prompt='Full body T-pose, front-facing, dark noble complexion, tall strong noble king, royal Asura crown - g'
-2026-05-29 16:36:49,502 [INFO] services.img_gen.img_inference - Fetching image from Pollinations.ai
-2026-05-29 16:36:50,605 [INFO] services.img_gen.img_inference - Image saved: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png
-2026-05-29 16:36:50,606 [INFO] services.img_gen.img_inference - generate_character_image | prompt="Full body T-pose, front-facing, fair elderly complexion, old thin sage, none - sage's matted hair, w"
-2026-05-29 16:36:50,606 [INFO] services.img_gen.img_inference - Fetching image from Pollinations.ai
-2026-05-29 16:36:50,608 [INFO] generate_glb - generate_glb | input=/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png asset_name=bali_chakravarti
-2026-05-29 16:36:50,608 [INFO] generate_glb - Job dir: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/bali_chakravarti_1780052810
-2026-05-29 16:36:50,609 [INFO] generate_glb - Running TripoSR: python /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/run.py /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/bali_chakravarti_img.png --output-dir /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/bali_chakravarti_1780052810
-2026-05-29 16:36:50,609 [INFO] generate_glb - cwd: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model
-2026-05-29 16:36:51,182 [INFO] generate_glb - Subprocess python: /home/ms_upendra/miniconda3/envs/triposr/bin/python
-2026-05-29 16:36:51,540 [INFO] services.img_gen.img_inference - Image saved: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:43,558 - INFO - Initializing model ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/miniconda3/envs/triposr/lib/python3.12/site-packages/transformers/utils/generic.py:441: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   _torch_pytree._register_pytree_node(
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/miniconda3/envs/triposr/lib/python3.12/site-packages/transformers/utils/generic.py:309: FutureWarning: `torch.utils._pytree._register_pytree_node` is deprecated. Please use `torch.utils._pytree.register_pytree_node` instead.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   _torch_pytree._register_pytree_node(
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/tsr/system.py:69: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr]   ckpt = torch.load(weight_path, map_location="cpu")
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:51,168 - INFO - Initializing model finished in 7610.28ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:51,169 - INFO - Processing images ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Processing images finished in 991.52ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Running image 1/1 ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,160 - INFO - Running model ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,619 - INFO - Running model finished in 458.21ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:52,619 - INFO - Extracting mesh ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,003 - INFO - Extracting mesh finished in 1384.77ms.
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,004 - INFO - Exporting mesh ...
-2026-05-29 16:37:55,474 [INFO] generate_glb - [subprocess stderr] 2026-05-29 16:37:54,144 - INFO - Exporting mesh finished in 140.33ms.
-2026-05-29 16:37:55,476 [ERROR] __main__ - 3D gen failed for bali_chakravarti
-Traceback (most recent call last):
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/main.py", line 564, in pipeline
-    glb_path = generate_glb(img_path_out, asset_name=cid)
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/generate_glb.py", line 130, in generate_glb
-    convert_obj_to_glb(objs[0], final_glb)
-    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
-  File "/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/generate_glb.py", line 47, in convert_obj_to_glb
-    import trimesh
-ModuleNotFoundError: No module named 'trimesh'
-2026-05-29 16:37:55,478 [INFO] generate_glb - generate_glb | input=/home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png asset_name=shukracharya
-2026-05-29 16:37:55,479 [INFO] generate_glb - Job dir: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/shukracharya_1780052875
-2026-05-29 16:37:55,479 [INFO] generate_glb - Running TripoSR: python /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model/run.py /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/pipeline_outputs/3a3c5fff-34f5-49ee-a281-27374e7516a2/shukracharya_img.png --output-dir /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/outputs/jobs/shukracharya_1780052875
-2026-05-29 16:37:55,479 [INFO] generate_glb - cwd: /home/ms_upendra/projects/Research/AR_StoryTelling_Pipeline/services/2d_to_3d/TripoSR_model
-2026-05-29 16:37:56,051 [INFO] generate_glb - Subprocess python: /home/ms_upendra/miniconda3/envs/triposr/bin/python
+  }
   function elapsed(key) {
     return timers[key] ? ((Date.now() - timers[key]) / 1000).toFixed(1) + 's' : '';
   }
@@ -511,7 +466,13 @@ ModuleNotFoundError: No module named 'trimesh'
 
 @app.get("/")
 def index():
-    logger.info("GET / — serving pipeline UI")
+    logger.info("GET / — serving AR frontend")
+    return send_from_directory(FRONTEND_AR_DIR, "index.html")
+
+
+@app.get("/backend/pipeline-testing")
+def pipeline_testing():
+    logger.info("GET /backend/pipeline-testing — serving pipeline UI")
     return render_template_string(_HTML)
 
 
@@ -770,6 +731,27 @@ def download_file(session_id: str, filename: str):
     )
 
 
+@app.get("/ar")
+@app.get("/ar/")
+def ar_redirect():
+    return redirect("/")
+
+
+@app.get("/ar/<path:filename>")
+def ar_static_compat(filename):
+    # Backwards-compat: /ar/capture.html etc. still served from frontend_ar/
+    return send_from_directory(FRONTEND_AR_DIR, filename)
+
+
+@app.get("/<path:filename>")
+def ar_static(filename):
+    # Serve any frontend_ar/ file at root level (/capture.html, /js/ar.js, ...)
+    filepath = FRONTEND_AR_DIR / filename
+    if filepath.exists() and filepath.is_file():
+        return send_from_directory(FRONTEND_AR_DIR, filename)
+    return jsonify({"error": "Not found"}), 404
+
+
 @app.get("/cache/<folder>/<filename>")
 def serve_cache_file(folder: str, filename: str):
     """
@@ -806,6 +788,84 @@ def serve_cache_file(folder: str, filename: str):
         as_attachment=False,
         download_name=filename,
     )
+
+
+def _build_ar_response(glb_results, characters, graph1, graph2, graph3):
+    """
+    Merge GLB URLs with graph3 scene composition data for the AR frontend.
+
+    Returns:
+        {
+            story:      str
+            characters: [{char_id, name, url, position, rotation_y}, ...]
+            timeline:   [{start_time, end_time, char_id, voiceover, simultaneous}, ...]
+        }
+    """
+    name_lookup = {c["id"]: c.get("name", c["id"]) for c in characters}
+
+    # Position / facing from graph3 first scene
+    pos_lookup: dict = {}
+    timeline_raw: list = []
+    scenes = graph3.get("scenes", [])
+    if scenes:
+        first = scenes[0]
+        for sc in first.get("characters", []):
+            cid    = sc.get("character_id", "")
+            facing = sc.get("facing", "positive_x")
+            pos_lookup[cid] = {
+                "position" : sc.get("position", [0, 0, 0]),
+                "rotation_y": 0.0 if facing == "positive_x" else 3.14159265,
+            }
+        timeline_raw = first.get("timeline", [])
+
+    # Action text lookup from graph2
+    action_lookup: dict = {}
+    for anim in graph2.get("animations", []):
+        aid = anim.get("animation_id", "")
+        if aid:
+            action_lookup[aid] = anim.get("action", "")
+
+    # Build enriched character list
+    enriched = []
+    for item in glb_results:
+        cid = item["char_id"]
+        p   = pos_lookup.get(cid, {})
+        enriched.append({
+            "char_id"   : cid,
+            "name"      : name_lookup.get(cid, cid),
+            "url"       : item["url"],
+            "position"  : p.get("position", [0, 0, 0]),
+            "rotation_y": p.get("rotation_y", 0.0),
+        })
+
+    # Default evenly-spaced row when graph3 has no positions
+    if not pos_lookup:
+        n = len(enriched)
+        for i, ch in enumerate(enriched):
+            ch["position"] = [(i - (n - 1) / 2) * 0.6, 0, 0]
+
+    # Build timeline with voiceover strings
+    timeline = []
+    for entry in timeline_raw:
+        cid    = entry.get("character_id", "")
+        aid    = entry.get("animation_id", "")
+        action = action_lookup.get(aid, "")
+        name   = name_lookup.get(cid, cid)
+        voiceover = f"{name} {action}".strip() if action else name
+        timeline.append({
+            "start_time" : float(entry.get("start_time", 0)),
+            "end_time"   : float(entry.get("end_time", 0)),
+            "char_id"    : cid,
+            "voiceover"  : voiceover,
+            "simultaneous": bool(entry.get("simultaneous", False)),
+        })
+
+    logger.info("_build_ar_response | chars=%d  timeline=%d", len(enriched), len(timeline))
+    return {
+        "story"     : graph1.get("story", ""),
+        "characters": enriched,
+        "timeline"  : timeline,
+    }
 
 
 @app.post("/animate")
@@ -847,9 +907,10 @@ def animate():
         logger.exception("Extraction failed in /animate")
         return jsonify({"error": f"Extraction failed: {e}"}), 500
 
-    graph1 = result["graph1"]
-    graph2 = result.get("graph2", {})
-    characters = graph1.get("characters", [])
+    graph1      = result["graph1"]
+    graph2      = result.get("graph2", {})
+    graph3      = result.get("graph3", {})
+    characters  = graph1.get("characters", [])
 
     if not characters:
         return jsonify({"error": "No characters found in the image."}), 422
@@ -928,8 +989,9 @@ def animate():
     if not glb_results:
         return jsonify({"error": "Pipeline completed but produced no animated GLBs."}), 500
 
+    ar_response = _build_ar_response(glb_results, characters, graph1, graph2, graph3)
     logger.info("POST /animate complete — %d GLB(s) | session=%s", len(glb_results), session_id)
-    return jsonify(glb_results)
+    return jsonify(ar_response)
 
 
 if __name__ == "__main__":
