@@ -1,2 +1,2 @@
 ## AR Story Telling
-Pranav et al. and Team
+Upendra et al. and Team
